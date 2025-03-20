@@ -139,7 +139,7 @@ for epoch in range(num_train_epochs):
         scaler.update()  #  update
 
 
-    # 评估阶段
+    # evaluation
     model.eval()
     eval_loss = 1
     threshold = 0.5
@@ -153,41 +153,38 @@ for epoch in range(num_train_epochs):
             with torch.amp.autocast('cuda', enabled=True):
                 outputs = model(input_ids, attention_mask=attention_mask, labels=labels)
                 loss = outputs[0]
-                logits = outputs[1]  # 获取预测值
+                logits = outputs[1]  # get predictions
 
             # 反标准化（恢复原始评分）
             batch_preds = logits.squeeze().cpu().numpy() * std + mean
-            batch_labels = labels.cpu().numpy() * std + mean
+            batch_labels = labels.cpu().numpy() * std + mean    # move to cpu + denormalization
 
             all_preds.extend(batch_preds.tolist())
-            all_labels.extend(batch_labels.tolist())
+            all_labels.extend(batch_labels.tolist())    # change to list
 
-            eval_loss += loss.item()
+            eval_loss += loss.item()    #store all losses
 
     eval_loss /= len(eval_dataloader)
     print(f'\nEpoch: {epoch}')
     print(f'Eval Loss: {eval_loss:.4f}')
 
-    # 计算回归指标
-    mae = mean_absolute_error(all_labels, all_preds)
-    mse = mean_squared_error(all_labels, all_preds)
-    r2 = r2_score(all_labels, all_preds)
+    mae = mean_absolute_error(all_labels, all_preds)    #平均值
+    mse = mean_squared_error(all_labels, all_preds)     #均方差
+    r2 = r2_score(all_labels, all_preds)                #决定系数
     print(f'MAE: {mae:.2f} | MSE: {mse:.2f} | R²: {r2:.2f}')
 
     correct = sum(abs(np.array(all_labels) - np.array(all_preds)) <= threshold)
     accuracy = correct / len(all_labels)
     print(f'Threshold Accuracy (±{threshold}): {accuracy:.2%}')
 
-    # 显示前5个样本的预测对比
     print("\nSample Predictions:")
     for i in range(min(5, len(all_labels))):
         print(f" 真实评分: {all_labels[i]:.1f} | 预测评分: {all_preds[i]:.1f}")
 
-    # 早停逻辑
+    # choose the best model
     if eval_loss < best_eval_loss:
         best_eval_loss = eval_loss
-        counter = 0  # 重置计数器
-        # 保存最佳模型
+        counter = 0
         torch.save(model.state_dict(), 'best_model.pth')
     else:
         counter += 1
@@ -196,8 +193,6 @@ for epoch in range(num_train_epochs):
             break
 
 
-
-# 使用训练好的模型预测新评论
 def predict_rating(text, model, tokenizer, max_len=128, mean=mean, std=std):
     model.eval()
     encoding = tokenizer.encode_plus(
