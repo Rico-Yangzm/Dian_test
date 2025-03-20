@@ -3,6 +3,7 @@ import pandas as pd
 import re
 import numpy as np
 import torch
+
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from torch.utils.data import Dataset, DataLoader
@@ -27,8 +28,7 @@ def clean_text(text):
 
 def filter_texts(df, min_length=4, max_length = 128):
     # sum up the number of characters
-    df['char_count'] = df['text'].apply(lambda x: len([c for c in x if '\u4e00' <= c <= '\u9fff']))
-    # delete too short ones
+    df['char_count'] = df['text'].apply(lambda x: len([c for c in x if '\u4e00' <= c <= '\u9fff']))     #del too long or short
     filtered_df = df[(min_length <= df['char_count']) & (df['char_count'] <= max_length)].drop(columns=['char_count'])
     return filtered_df  # purified data
 
@@ -105,7 +105,7 @@ model = BertRegressor()         #initialize model
 
 #change to get more accurate model
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.01)  # learning rate
+optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.1)  # learning rate
 evaluate_loss = torch.nn.MSELoss()  #loss model
 num_train_epochs = 4                # training times
 train_size = 24    # train parallel samples

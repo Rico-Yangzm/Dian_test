@@ -135,7 +135,7 @@ class Forest:
 
     def update_feature_importance(self, node):
         if node.feature is not None:
-            self.feature_importance[node.feature] += 1  # 统计特征使用次数
+            self.feature_importance[node.feature] += 1
             self.update_feature_importance(node.left)
             self.update_feature_importance(node.right)
 
@@ -180,8 +180,8 @@ test = Forest()
 test.train(X, y)
 accuracy = test.evaluate_oob(X, y)
 print(f"Out-of-Bag Accuracy: {accuracy}")
-# 获取特征名称（假设使用鸢尾花数据集）
+# get samples
 feature_names = iris.variables[iris.variables['role'] == 'Feature']['name'].tolist()
 
-# 可视化特征重要性
+# visualize
 test.plot_feature_importance(feature_names)
