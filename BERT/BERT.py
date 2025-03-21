@@ -106,7 +106,7 @@ model = BertRegressor()         #initialize model
 
 optimizer = torch.optim.AdamW(model.parameters(), lr=5e-6, weight_decay=0.1)  # learning rate
 evaluate_loss = torch.nn.MSELoss()  #loss model
-num_train_epochs = 30                # training times
+num_train_epochs = 50                # training times
 train_size = 24    # train parallel samples
 evaluate_size = 24     # evaluate parallel samples
 update_frequency = 1     # update each time
