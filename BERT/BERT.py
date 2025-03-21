@@ -69,7 +69,6 @@ local_model_path = "C:\\Users\\29955\\Downloads\\bert"
 tokenizer = AutoTokenizer.from_pretrained(local_model_path)
 
 
-# 定义回归模型（预测连续值）
 class BertRegressor(torch.nn.Module):
     def __init__(self):
         super().__init__()
@@ -156,7 +155,6 @@ for epoch in range(num_train_epochs):
                 loss = outputs[0]
                 logits = outputs[1]  # get predictions
 
-            # 反标准化（恢复原始评分）
             batch_preds = logits.squeeze().cpu().numpy() * std + mean
             batch_labels = labels.cpu().numpy() * std + mean    # move to cpu + denormalization
 
@@ -211,7 +209,7 @@ def predict_rating(text, model, tokenizer, max_len=128, mean=mean, std=std):
         attention_mask = encoding['attention_mask'].to(device)
         output = model(input_ids, attention_mask)
 
-    predicted_score = (output[0].squeeze().item() * std) + mean  # 反归一化
+    predicted_score = (output[0].squeeze().item() * std) + mean  # denormalize
     return predicted_score
 
 
