@@ -97,7 +97,7 @@ df = filter_texts(df)                           #initialize data
 mean = df['point'].mean()
 std = df['point'].std()
 df['point'] = (df['point'] - mean) / std        #normalization
-train_df, test_df = train_test_split(df, test_size=0.01)
+train_df, test_df = train_test_split(df, test_size=0.1)
 train_dataset = CommentData(train_df['text'].values, train_df['point'].values, tokenizer, max_len=128)
 test_dataset = CommentData(test_df['text'].values, test_df['point'].values, tokenizer, max_len=128)         #seperete
 model = BertRegressor()         #initialize model
@@ -120,8 +120,9 @@ model.to(device)            # train model using gpu
 
 scaler = torch.amp.GradScaler('cuba')       #initialize GradScaler
 best_eval_loss = float('inf')
-patience = 3  # 早停耐心
+patience = 3
 counter = 0
+best_epoch = 0
 
 for epoch in range(num_train_epochs):
     model.train()
@@ -141,8 +142,8 @@ for epoch in range(num_train_epochs):
 
     # evaluation
     model.eval()
-    eval_loss = 1
-    threshold = 0.5
+    eval_loss = 0
+    threshold = 0.8
     all_preds = []
     all_labels = []     #initialize lists and parameters
     with torch.no_grad():   #baned grad
@@ -165,7 +166,7 @@ for epoch in range(num_train_epochs):
             eval_loss += loss.item()    #store all losses
 
     eval_loss /= len(eval_dataloader)
-    print(f'\nEpoch: {epoch}')
+    print(f'\nEpoch: {epoch + 1}')
     print(f'Eval Loss: {eval_loss:.4f}')
 
     mae = mean_absolute_error(all_labels, all_preds)    #平均值
@@ -185,11 +186,12 @@ for epoch in range(num_train_epochs):
     if eval_loss < best_eval_loss:
         best_eval_loss = eval_loss
         counter = 0
+        best_epoch = epoch + 1
         torch.save(model.state_dict(), 'best_model.pth')
     else:
         counter += 1
         if counter >= patience:
-            print(f'Early stopping at epoch {epoch}')
+            print(f'Early stopping at epoch {epoch + 1}')
             break
 
 
