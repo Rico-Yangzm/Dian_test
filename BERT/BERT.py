@@ -22,7 +22,7 @@ def load_data(file_path):
 # purify data
 def clean_text(text):
     text = text.lower()
-    text = re.sub(r'[a~z\s]', '', text) # remove letters and
+    text = re.sub(r'[a-z\s]', '', text) # remove letters and
     return text
 
 
@@ -114,7 +114,7 @@ update_frequency = 1     # update each time
 
 train_dataloader = DataLoader(train_dataset, batch_size=train_size, shuffle=True)
 eval_dataloader = DataLoader(test_dataset, batch_size=evaluate_size, shuffle=False) #create dataloader
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device('cuda')
 model.to(device)            # train model using gpu
 
 scaler = torch.amp.GradScaler('cuba')       #initialize GradScaler
@@ -142,7 +142,7 @@ for epoch in range(num_train_epochs):
     # evaluation
     model.eval()
     eval_loss = 0
-    threshold = 0.8
+    mistakes = 0.8
     all_preds = []
     all_labels = []     #initialize lists and parameters
     with torch.no_grad():   #baned grad
@@ -172,9 +172,9 @@ for epoch in range(num_train_epochs):
     r2 = r2_score(all_labels, all_preds)                #决定系数
     print(f'MAE: {mae:.2f} | MSE: {mse:.2f} | R²: {r2:.2f}')
 
-    correct = sum(abs(np.array(all_labels) - np.array(all_preds)) <= threshold)
+    correct = sum(abs(np.array(all_labels) - np.array(all_preds)) <= mistakes)
     accuracy = correct / len(all_labels)
-    print(f'Threshold Accuracy (±{threshold}): {accuracy:.2%}')
+    print(f'Accuracy (±{mistakes}): {accuracy:.2%}')
 
     print("\nSample Predictions:")
     for i in range(min(5, len(all_labels))):
@@ -212,10 +212,3 @@ def predict_rating(text, model, tokenizer, max_len=128, mean=mean, std=std):
 
     predicted_score = (output[0].squeeze().item() * std) + mean  # denormalize
     return predicted_score
-
-
-
-# 示例预测
-sample_text = "画面精美但剧情拖沓"
-predicted_score = predict_rating(sample_text, model, tokenizer, max_len=128, mean=mean, std=std)
-print(f"预测评分: {predicted_score:.1f}")
