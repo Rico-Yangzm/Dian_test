@@ -104,9 +104,9 @@ model = BertRegressor()         #initialize model
 
 #change to get more accurate model
 
-optimizer = torch.optim.AdamW(model.parameters(), lr=2e-5, weight_decay=0.1)  # learning rate
+optimizer = torch.optim.AdamW(model.parameters(), lr=5e-6, weight_decay=0.1)  # learning rate
 evaluate_loss = torch.nn.MSELoss()  #loss model
-num_train_epochs = 4                # training times
+num_train_epochs = 30                # training times
 train_size = 24    # train parallel samples
 evaluate_size = 24     # evaluate parallel samples
 update_frequency = 1     # update each time
@@ -119,7 +119,7 @@ model.to(device)            # train model using gpu
 
 scaler = torch.amp.GradScaler('cuba')       #initialize GradScaler
 best_eval_loss = float('inf')
-patience = 3
+patience = 5
 counter = 0
 best_epoch = 0
 
@@ -190,6 +190,7 @@ for epoch in range(num_train_epochs):
         counter += 1
         if counter >= patience:
             print(f'Early stopping at epoch {epoch + 1}')
+            print(f'best epoch is {best_epoch}')
             break
 
 
